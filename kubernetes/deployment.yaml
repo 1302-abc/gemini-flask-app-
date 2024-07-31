@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: gemini-flask-app
-        image: gcr.io/your_project_id/gemini-flask-app
+        image: gcr.io/studied-setting-424123-a9/gemini-flask-app
         env:
         - name: GEMINI_API_KEY
           valueFrom:
