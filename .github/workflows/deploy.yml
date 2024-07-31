@@ -24,6 +24,10 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+    - name: Set up kubectl
+      run: |
+        gcloud container clusters get-credentials producer-cluster --zone us-west1-a --project ${{ secrets.GCP_PROJECT }}
+
     - name: Build Docker image
       run: |
         docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/gemini-flask-app .
