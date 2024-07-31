@@ -26,13 +26,9 @@ jobs:
 
     - name: Install gke-gcloud-auth-plugin
       run: |
-        sudo apt-get update
-        sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
-
-    - name: Build Docker image
-      run: |
-        docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/gemini-flask-app .
-        docker push gcr.io/${{ secrets.GCP_PROJECT }}/gemini-flask-app
+        wget https://storage.googleapis.com/gke-release/gke-gcloud-auth-plugin/linux/amd64/gke-gcloud-auth-plugin
+        chmod +x gke-gcloud-auth-plugin
+        sudo mv gke-gcloud-auth-plugin /usr/local/bin/
 
     - name: Set up kubectl
       run: |
@@ -41,6 +37,11 @@ jobs:
     - name: Create Kubernetes Secret
       run: |
         kubectl create secret generic gemini-api-key --from-literal=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Build Docker image
+      run: |
+        docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/gemini-flask-app .
+        docker push gcr.io/${{ secrets.GCP_PROJECT }}/gemini-flask-app
 
     - name: Deploy to GKE
       run: |
