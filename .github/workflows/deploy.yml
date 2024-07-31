@@ -24,11 +24,9 @@ jobs:
       with:
         credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    - name: Install gke-gcloud-auth-plugin
+    - name: Install gcloud components
       run: |
-        wget https://storage.googleapis.com/gke-release/gke-gcloud-auth-plugin/linux/amd64/gke-gcloud-auth-plugin
-        chmod +x gke-gcloud-auth-plugin
-        sudo mv gke-gcloud-auth-plugin /usr/local/bin/
+        gcloud components install gke-gcloud-auth-plugin
 
     - name: Set up kubectl
       run: |
@@ -47,3 +45,4 @@ jobs:
       run: |
         kubectl apply -f kubernetes/deployment.yaml
         kubectl apply -f kubernetes/service.yaml
+
