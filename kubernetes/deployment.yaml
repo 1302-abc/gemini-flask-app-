@@ -1,25 +1,43 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: gemini-flask-app
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: gemini-flask-app
-  template:
-    metadata:
-      labels:
-        app: gemini-flask-app
-    spec:
-      containers:
-      - name: gemini-flask-app
-        image: gcr.io/studied-setting-424123-a9/gemini-flask-app
-        env:
-        - name: GEMINI_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: gemini-api-key
-              key: GEMINI_API_KEY
-        ports:
-        - containerPort: 8080
+name: Build and Deploy Docker Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        version: 'latest'
+        project_id: ${{ secrets.GCP_PROJECT }}
+
+    - name: Authenticate with Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - name: Build Docker image
+      run: |
+        docker build -t gcr.io/${{ secrets.GCP_PROJECT }}/gemini-flask-app .
+        docker push gcr.io/${{ secrets.GCP_PROJECT }}/gemini-flask-app
+
+    - name: Set up kubectl
+      run: |
+        gcloud container clusters get-credentials producer-cluster --zone us-west1-a --project ${{ secrets.GCP_PROJECT }}
+
+    - name: Create Kubernetes Secret
+      run: |
+        kubectl create secret generic gemini-api-key --from-literal=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Deploy to GKE
+      run: |
+        kubectl apply -f kubernetes/deployment.yaml
+        kubectl apply -f kubernetes/service.yaml
