@@ -1,124 +1,33 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GenAI 1.0.1 Chat Application</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f0f5;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            max-width: 600px;
-            width: 100%;
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #5107ff;
-            margin-bottom: 20px;
-        }
-        .chat-box {
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            min-height: 300px;
-            background-color: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            height: 400px;
-        }
-        .message {
-            margin: 5px 0;
-            padding: 10px;
-            border-radius: 5px;
-            max-width: 80%;
-        }
-        .message.user {
-            align-self: flex-end;
-            background-color: #e1e8ff;
-        }
-        .message.ai {
-            align-self: flex-start;
-            background-color: #d0ffd6;
-        }
-        .input-box {
-            display: flex;
-            align-items: center;
-            border-top: 1px solid #ccc;
-            padding-top: 10px;
-        }
-        .input-box input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
-        .input-box button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #5107ff;
-            color: #fff;
-            cursor: pointer;
-        }
-        .input-box button:hover {
-            background-color: #9e7ced;
-        }
-    </style>
+    <title>Gemini Text Generator</title>
 </head>
 <body>
-    <div class="container">
-        <h1>Talk to AI</h1>
-        <div class="chat-box" id="chat-box"></div>
-        <div class="input-box">
-            <input type="text" id="user-input" placeholder="Type a prompt here...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
+    <h1>Generate Text with Gemini</h1>
+    <form id="promptForm">
+        <label for="prompt">Enter your prompt:</label><br>
+        <input type="text" id="prompt" name="prompt"><br><br>
+        <input type="submit" value="Generate">
+    </form>
+    <div id="result"></div>
 
     <script>
-        async function sendMessage() {
-            const userInput = document.getElementById('user-input').value;
-            if (!userInput) return;
-
-            const chatBox = document.getElementById('chat-box');
-            const userMessage = document.createElement('div');
-            userMessage.className = 'message user';
-            userMessage.textContent = 'You: ' + userInput;
-            chatBox.appendChild(userMessage);
-
-            const response = await fetch('/submit', {
+        document.getElementById('promptForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const prompt = document.getElementById('prompt').value;
+            fetch('/generate', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ prompt: userInput }),
+                body: JSON.stringify({ prompt: prompt })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerText = data.generated_text;
             });
-
-            const result = await response.json();
-
-            const aiMessage = document.createElement('div');
-            aiMessage.className = 'message ai';
-            aiMessage.textContent = 'AI: ' + result.received_data;
-            chatBox.appendChild(aiMessage);
-            chatBox.scrollTop = chatBox.scrollHeight;
-
-            document.getElementById('user-input').value = '';
-        }
+        });
     </script>
 </body>
 </html>
